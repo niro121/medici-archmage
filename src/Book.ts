@@ -70,8 +70,8 @@ export class Book<U extends ITransaction = ITransaction, J extends IJournal = IJ
     }
   }
 
-  entry(memo: string, date = null as Date | null, original_journal?: string | Types.ObjectId): Entry<U, J> {
-    return Entry.write<U, J>(this, memo, date, original_journal);
+  entry(memo: string, date = null as Date | null, original_journal?: string | Types.ObjectId, isBalance? : boolean|false): Entry<U, J> {
+    return Entry.write<U, J>(this, memo, date, original_journal,isBalance);
   }
 
   async balance(query: IBalanceQuery, options = {} as IOptions): Promise<{ balance: number; notes: number }> {

@@ -12,18 +12,20 @@ export class Entry<U extends ITransaction = ITransaction, J extends IJournal = I
   book: Book;
   journal: TJournalDocument<J> & { _original_journal?: Types.ObjectId };
   transactions: U[] = [];
+  isBalance = false;
   timestamp = new Date();
 
   static write<U extends ITransaction, J extends IJournal>(
     book: Book,
     memo: string,
     date: Date | null,
-    original_journal?: string | Types.ObjectId
+    original_journal?: string | Types.ObjectId,
+    isBalance?: boolean | false
   ): Entry<U, J> {
-    return new this(book, memo, date, original_journal);
+    return new this(book, memo, date, original_journal, isBalance);
   }
 
-  constructor(book: Book, memo: string, date: Date | null, original_journal?: string | Types.ObjectId) {
+  constructor(book: Book, memo: string, date: Date | null, original_journal?: string | Types.ObjectId, isBalance?: boolean | false) {
     this.book = book;
     this.journal = new journalModel() as TJournalDocument<J> & {
       _original_journal?: Types.ObjectId;
@@ -33,6 +35,10 @@ export class Entry<U extends ITransaction = ITransaction, J extends IJournal = I
     if (original_journal) {
       this.journal._original_journal =
         typeof original_journal === "string" ? new Types.ObjectId(original_journal) : original_journal;
+    }
+
+    if (isBalance) {
+      this.isBalance = isBalance;
     }
 
     this.journal.datetime = parseDateField(date) || new Date();
@@ -118,7 +124,7 @@ export class Entry<U extends ITransaction = ITransaction, J extends IJournal = I
 
     total = parseFloat(total.toFixed(this.book.precision));
 
-    if (total !== 0) {
+    if (total !== 0 && !this.isBalance) {
       throw new TransactionError("INVALID_JOURNAL: can't commit non zero total", total);
     }
 
